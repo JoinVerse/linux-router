@@ -1,0 +1,58 @@
+{
+    "nameservers": ["8.8.8.8", "8.8.4.4"],
+    "public_ip": "10.255.0.1",
+    "public_host": "home.dirbaio.net",
+    "public_interfaces": ["ppp0"],
+    "interfaces": [
+        {
+            "name": "external0",
+            "type": "hardware",
+            "mac": "60:e3:27:03:30:3a"
+        },
+        {
+            "name": "external0.6",
+            "type": "vlan",
+            "vlan": 6,
+            "parent": "external0"
+        },
+        {
+            "name": "ppp0",
+            "type": "pppoe",
+            "parent": "external0.6",
+            "username": "adslppp@telefonicanetpa",
+            "password": "adslppp"
+        },
+        {
+            "name": "internal0",
+            "type": "hardware",
+            "mac": "d0:50:99:52:e5:f3"
+        }
+    ],
+
+    "networks": [
+        {
+            "name": "main",
+            "interface": "internal0",
+            "range": "16",
+            "ip": "10.10.0.1",
+            "dhcp": {
+                "start": "10.10.0.100",
+                "end": "10.10.0.200"
+            },
+            "hosts": [
+                {
+                    "mac": "d0:50:99:52:e5:f3",
+                    "ip": "10.10.0.1",
+                    "name": "skynet",
+                    "ports": [
+                        {
+                            "proto": "tcp",
+                            "source": "1337",
+                            "dest": "22"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
