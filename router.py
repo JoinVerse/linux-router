@@ -91,7 +91,11 @@ noauth
 
 
     # build /etc/resolv.conf
-    os.remove(root+'/etc/resolv.conf')  # Remove it in case it's a symlink
+    try:
+        os.remove(root+'/etc/resolv.conf')  # Remove it in case it's a symlink
+    except OSError:
+        pass  # If it doesn't exist, no worries.
+
     with open(root+'/etc/resolv.conf', 'wt') as f:
         for ns in config['nameservers']:
             f.write('nameserver {}\n'.format(ns))
