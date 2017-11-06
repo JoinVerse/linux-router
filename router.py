@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 
+
 def apply(config, root):
     public_ip = config['public_ip']
     public_host = config['public_host']
@@ -115,6 +116,11 @@ IPForward=yes
 [Address]
 Address={ip}/{range}
 '''.format(**network))
+            if network.get('gateway'):
+                f.write('''
+[Route]
+Gateway={gateway}
+'''.format(**network))
 
     # Build hosts file
     with open(root+'/etc/hosts', 'wt') as f:
@@ -123,18 +129,23 @@ Address={ip}/{range}
         f.write('{} {}\n'.format(public_ip, public_host))
 
         for network in config['networks']:
-            for host in network['hosts']:
+            for host in network.get('hosts', []):
                 if host.get('name'):
-                    f.write("{ip} {name}\n".format(**host))
+                    f.write("{host[ip]} {host[name]}\n".format(host=host))
 
     # Build dnsmasq config
     with open(root+'/etc/dnsmasq.conf', 'wt') as f:
+        with open('dnsmasq.conf', 'r') as tpl:
+            f.write(tpl.read())
         for network in config['networks']:
             if network.get('dhcp'):
-                f.write("dhcp-range={start},{end},1h\n".format(**network['dhcp']))
-            for host in network['hosts']:
+                f.write("dhcp-range={},{},1h\n".format(network['dhcp']['start'], network['dhcp']['end']))
+            for host in network.get('hosts', []):
                 if host.get('mac'):
-                    f.write("dhcp-host={mac},{ip}\n".format(**host))
+                    macs = host['mac']
+                    if isinstance(macs, str):
+                        macs = [macs]
+                    f.write("dhcp-host={macs},{host[ip]}\n".format(host=host, macs=','.join(macs)))
 
 
     with open(root+'/etc/iptables/iptables.rules', 'wt') as f:
@@ -143,10 +154,10 @@ Address={ip}/{range}
         nat = ''
 
         for network in config['networks']:
-            for host in network['hosts']:
+            for host in network.get('hosts', []):
                 if host.get('ports'):
                     for port in host['ports']:
-                        flt += '-A fw-open -d {host[ip]} -p {port[proto]} -m {port[proto]} --dport {port[source]} -j ACCEPT\n'.format(host=host, port=port)
+                        flt += '-A fw-open -d {host[ip]} -p {port[proto]} -m {port[proto]} --dport {port[dest]} -j ACCEPT\n'.format(host=host, port=port)
                         nat += '-A INCOMING -p {port[proto]} -m {port[proto]} --dport {port[source]} -j DNAT --to-destination {host[ip]}:{port[dest]}\n'.format(host=host, port=port)
                         nat += '-A POSTROUTING -d {host[ip]} -s {network[ip]}/{network[range]} -p {port[proto]} --dport {port[dest]} -j SNAT --to {network[ip]}\n'.format(network=network, host=host, port=port)
 
@@ -154,16 +165,19 @@ Address={ip}/{range}
             f.write(tpl.read())
         f.write(flt)
         for network in config['networks']:
-            f.write('-A fw-interfaces -i {network[interface]} -s {network[ip]}/{network[range]} -j ACCEPT\n'.format(network=network))
+            if network.get('nat'):
+                f.write('-A fw-interfaces -i {network[interface]} ! -s {network[ip]}/{network[range]} -j LOGDROP\n'.format(network=network))
+            f.write('-A fw-open -s {network[ip]}/{network[range]} -d {network[ip]}/{network[range]} -j ACCEPT\n'.format(network=network))
 
         f.write("COMMIT\n")
         with open('iptables-nat.rules', 'r') as tpl:
             f.write(tpl.read())
 
         for network in config['networks']:
-            for public_if in public_interfaces:
-                f.write('-A POSTROUTING -s {network[ip]}/{network[range]} -o {public_if} -j MASQUERADE\n'.format(network=network, public_if=public_if))
-            f.write('-A PREROUTING -d {public_ip} -s {network[ip]}/{network[range]} -j INCOMING\n'.format(public_ip=public_ip, network=network))
+            if network.get('nat'):
+                for public_if in public_interfaces:
+                    f.write('-A POSTROUTING -s {network[ip]}/{network[range]} -o {public_if} -j MASQUERADE\n'.format(network=network, public_if=public_if))
+                f.write('-A PREROUTING -d {public_ip} -s {network[ip]}/{network[range]} -j INCOMING\n'.format(public_ip=public_ip, network=network))
 
         for public_if in public_interfaces:
             f.write('-A PREROUTING -i {public_if} -j INCOMING\n'.format(public_if=public_if))
