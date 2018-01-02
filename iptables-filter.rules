@@ -1,9 +1,14 @@
+*raw
+:PREROUTING ACCEPT [721:116841]
+COMMIT
+
 *filter
 :INPUT DROP [0:0]
 :FORWARD DROP [0:0]
 :OUTPUT ACCEPT [1119:49468]
 :TCP - [0:0]
 :UDP - [0:0]
+:LOGDROP - [0:0]
 :fw-firewall - [0:0]
 :fw-interfaces - [0:0]
 :fw-open - [0:0]
@@ -13,20 +18,107 @@
 -A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
 -A INPUT -p udp -m conntrack --ctstate NEW -j UDP
 -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j TCP
--A INPUT -p udp -j REJECT --reject-with icmp-port-unreachable
--A INPUT -p tcp -j REJECT --reject-with tcp-reset
--A INPUT -j REJECT --reject-with icmp-proto-unreachable
--A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+-A INPUT -m pkttype --pkt-type broadcast -j DROP
+-A INPUT -j LOGDROP
+
+-A FORWARD -o ppp0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
 -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -j fw-interfaces
 -A FORWARD -j fw-open
 -A FORWARD -j fw-firewall
--A FORWARD -j fw-interfaces
--A FORWARD -j REJECT --reject-with icmp-host-unreachable
+-A FORWARD -j LOGDROP
 -A TCP -p tcp -m tcp --dport 22 -j ACCEPT
--A UDP -p udp -m udp --dport 53 -j ACCEPT
--A UDP -p udp -m udp --dport 67 -j ACCEPT
-# -A fw-firewall -s 10.1.0.0/16 -d 10.0.0.0/16 -j DROP
-# -A fw-firewall -s 10.1.0.0/16 -d 10.4.0.0/16 -j DROP
-# -A fw-firewall -s 10.1.0.0/16 -d 10.99.0.0/16 -j DROP
-# -A fw-firewall -s 10.0.0.0/16 -d 10.4.0.0/16 -j DROP
-# -A fw-firewall -s 10.99.0.0/16 -d 10.4.0.0/16 -j DROP
+-A TCP -p tcp -m tcp --dport 80 -j ACCEPT
+-A TCP -p tcp -m tcp --dport 443 -j ACCEPT
+
+# WireGuard
+-A UDP -p udp -m udp --dport 48873 -j ACCEPT
+
+# Unifi controller
+-A TCP -s 10.99.0.0/16 -p tcp -m tcp --dport 8081 -j ACCEPT
+#-A TCP -s 10.99.0.0/16 -p tcp -m tcp --dport 8443 -j ACCEPT
+-A TCP -s 10.99.0.0/16 -p tcp -m tcp --dport 8080 -j ACCEPT
+-A UDP -s 10.99.0.0/16 -p udp -m udp --dport 10001 -j ACCEPT
+-A UDP -s 10.99.0.0/16 -p udp -m udp --dport 3478 -j ACCEPT
+
+# Unifi voip controller
+-A TCP -s 10.0.0.0/16 -p tcp -m tcp --dport 9080 -j ACCEPT
+#-A TCP -s 10.0.0.0/16 -p tcp -m tcp --dport 9443 -j ACCEPT
+
+# SIP stuff
+#-A TCP -s 10.0.0.0/16 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -p tcp -m tcp --dport 5061 -j ACCEPT
+-A UDP -p udp -m udp --dport 5060:32767 -j ACCEPT
+
+-A TCP -s 10.0.0.0/16 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.172.60.0 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.172.60.1 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.172.60.2 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.172.60.3 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.244.51.0 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.244.51.1 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.244.51.2 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.244.51.3 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.171.127.192 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.171.127.193 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.171.127.194 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.171.127.195 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 35.156.191.128 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 35.156.191.129 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 35.156.191.130 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 35.156.191.131 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.65.63.192 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.65.63.193 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.65.63.194 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.65.63.195 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.169.127.128 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.169.127.129 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.169.127.130 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.169.127.131 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.252.254.64 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.252.254.65 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.252.254.66 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 54.252.254.67 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 177.71.206.192 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 177.71.206.193 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 177.71.206.194 -p tcp -m tcp --dport 5061 -j ACCEPT
+-A TCP -s 177.71.206.195 -p tcp -m tcp --dport 5061 -j ACCEPT
+
+
+-A UDP -i lan+ -p udp -m udp --dport 53 -j ACCEPT
+-A UDP -i wg0 -p udp -m udp --dport 53 -j ACCEPT
+-A UDP -i lan+ -p udp -m udp --dport 67 -j ACCEPT
+
+# Ethereum spam
+-A UDP -p udp -m udp --dport 30303 -j DROP
+-A TCP -p tcp -m tcp --dport 30303 -j DROP
+
+# Main to Internet
+-A fw-firewall -s 10.0.0.0/16 -o ppp0 -j ACCEPT
+-A fw-firewall -s 10.0.0.0/16 -o wan1 -j ACCEPT
+# Main <> VPN
+-A fw-firewall -s 10.0.0.0/16 -d 10.10.0.0/16 -j ACCEPT
+-A fw-firewall -s 10.10.0.0/16 -d 10.0.0.0/16 -j ACCEPT
+# VPN to Internet
+-A fw-firewall -s 10.10.0.0/16 -o ppp0 -j ACCEPT
+-A fw-firewall -s 10.10.0.0/16 -o wan1 -j ACCEPT
+
+# Dario
+-A fw-firewall -s 10.10.0.10 -j ACCEPT
+
+# Guest to internet
+-A fw-firewall -s 10.1.0.0/16 -o ppp0 -j ACCEPT
+-A fw-firewall -s 10.1.0.0/16 -o wan1 -j ACCEPT
+# Aux (lan1) to anything
+-A fw-firewall -s 10.3.0.0/16 -j ACCEPT
+
+#Bigbrother to internet
+-A fw-firewall -s 10.4.1.9 -o ppp0 -j ACCEPT
+-A fw-firewall -s 10.4.1.9 -o wan1 -j ACCEPT
+# Drop cameras to internet without logging, otherwise it gets spammy
+-A fw-firewall -s 10.4.0.0/16 -o ppp0 -j DROP
+-A fw-firewall -s 10.4.0.0/16 -o wan1 -j DROP
+
+-A LOGDROP -m limit --limit 1/sec -j LOG --log-prefix "iptables drop: " --log-level 7
+-A LOGDROP -j DROP
+#-A LOGDROP -j REJECT --reject-with icmp-host-unreachable

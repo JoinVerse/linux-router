@@ -1,8 +1,8 @@
 {
-    "nameservers": ["8.8.8.8"],
+    "nameservers": ["8.8.8.8", "8.8.4.4"],
     "public_ip": "10.0.0.1",
     "public_host": "verse.cat",
-    "public_interfaces": ["ppp0", "wan1"],
+    "public_interfaces": ["ppp0"],
     "interfaces": [
         {
             "name": "wan0",
@@ -65,18 +65,10 @@
 
     "networks": [
         {
-            "name": "wan",
-            "interface": "wan1",
-            "range": "29",
-            "ip": "91.126.38.98",
-            "gateway": "91.126.38.97"
-        },
-        {
             "name": "main",
             "interface": "lan0.2",
             "range": "16",
             "ip": "10.0.0.1",
-            "nat": true,
             "dhcp": {
                 "start": "10.0.0.100",
                 "end": "10.0.0.200"
@@ -111,25 +103,50 @@
                     "ports": [
                         {
                             "proto": "tcp",
-                            "source": "2234",
-                            "dest": "22"
+                            "source": "9000",
+                            "dest": "9000"
                         },
                         {
                             "proto": "tcp",
-                            "source": "8140",
-                            "dest": "8140"
+                            "source": "8021",
+                            "dest": "8021"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "8333",
+                            "dest": "8333"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "8444",
+                            "dest": "8444"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "18444",
+                            "dest": "18444"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "18445",
+                            "dest": "18445"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "8000",
+                            "dest": "8000"
+                        },
+                        {
+                            "proto": "tcp",
+                            "source": "18333",
+                            "dest": "18333"
                         }
                     ]
                 },
                 {
-                    "mac": ["d0:50:99:4f:46:0d", "a0:f3:c1:1e:2f:a0"],
+                    "mac": "d0:50:99:4f:46:0d",
                     "ip": "10.0.0.4",
                     "name": "atm"
-                },
-                {
-                    "mac": ["1c:1b:0d:6c:b5:00"],
-                    "ip": "10.0.0.5",
-                    "name": "contabilidad"
                 },
                 {
                     "mac": ["44:8a:5b:44:30:06", "a0:88:69:76:11:ff"],
@@ -171,7 +188,7 @@
                     ]
                 },
                 {
-                    "mac": "1c:1b:0d:6f:9a:6c",
+                    "mac": "4c:cc:6a:22:56:86",
                     "ip": "10.0.0.22",
                     "name": "neptune",
                     "ports": [
@@ -194,7 +211,6 @@
             "interface": "lan0.3",
             "ip": "10.1.0.1",
             "range": "16",
-            "nat": true,
             "dhcp": {
                 "start": "10.1.0.100",
                 "end": "10.1.0.200"
@@ -206,7 +222,6 @@
             "interface": "lan1",
             "ip": "10.3.0.1",
             "range": "16",
-            "nat": true,
             "dhcp": {
                 "start": "10.3.0.100",
                 "end": "10.3.0.200"
@@ -218,7 +233,6 @@
             "interface": "lan0.1",
             "ip": "10.99.0.1",
             "range": "16",
-            "nat": true,
             "dhcp": {
                 "start": "10.99.0.100",
                 "end": "10.99.0.200"
@@ -241,7 +255,6 @@
             "interface": "lan0.4",
             "ip": "10.4.0.1",
             "range": "16",
-            "nat": true,
             "dhcp": {
                 "start": "10.4.0.100",
                 "end": "10.4.0.200"

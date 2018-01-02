@@ -4,3 +4,10 @@
 :OUTPUT ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 :INCOMING - [0:0]
+-A PREROUTING -i lan+ -p tcp --dport 53 -j REDIRECT
+-A PREROUTING -i lan+ -p udp --dport 53 -j REDIRECT
+-A PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT
+
+-A POSTROUTING -s 10.10.0.0/16 -o ppp0 -j MASQUERADE
+-A POSTROUTING -s 10.10.0.0/16 -o wan1 -j MASQUERADE
+

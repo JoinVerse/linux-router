@@ -79,7 +79,7 @@ WantedBy=multi-user.target
 {parent}
 # login name
 name "{username}"
-usepeerdns
+#usepeerdns
 persist
 # Uncomment this if you want to enable dial on demand
 #demand
@@ -130,6 +130,7 @@ Gateway={gateway}
     with open(root+'/etc/hosts', 'wt') as f:
         f.write('127.0.0.1	localhost.localdomain	localhost\n')
         f.write('::1		localhost.localdomain	localhost\n')
+        f.write('10.99.0.1 unifi\n')
         f.write('{} {}\n'.format(public_ip, public_host))
 
         for network in config['networks']:
